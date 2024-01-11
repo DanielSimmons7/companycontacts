@@ -1,5 +1,8 @@
 <!DOCTYPE html>
 <html>
+  <head>
+    <title>Company Contacts</title>
+  </head>
   <body>
     <div id="root"></div>
   </body>
@@ -21,25 +24,69 @@
   <script type="text/babel" data-type="module">
     import React from "react";
     import { createRoot } from "react-dom/client";
+    const { useState, useEffect } = React;
+
+    const Title = ({ count }) => {
+      return <h1>Company Contacts {count} </h1>;
+    };
+
+    const ContactDetail = ({ contact }) => {
+      return (
+        <li>
+          <h2>
+            <a href="#">{contact.name}</a>
+          </h2>
+          {contact.catchPhrase}
+          <h4>{contact.state}</h4>
+          <h6>{contact.phone}</h6>
+        </li>
+      );
+    };
+
+    const Contacts = ({ contacts, selectedId }) => {
+      return (
+        <ul>
+          {contacts.map((contact) => {
+            if (contact.id === selectedId) {
+              return <ContactDetail key={contact.id} contact={contact} />;
+            } else {
+              return (
+                <li key={contact.id}>
+                  <a href={`#${contact.id}`}>{contact.name}</a>
+                </li>
+              );
+            }
+          })}
+        </ul>
+      );
+    };
 
     function App() {
-      const [numbers, setNumbers] = React.useState([1, 2, 3]);
+      const [contacts, setContacts] = useState([]);
+      const [selectedId, setSelectedId] = useState(
+        window.location.hash.slice(1)
+      );
 
+      useEffect(() => {
+        window.addEventListener("hashchange", () => {
+          setSelectedId(window.location.hash.slice(1));
+        });
+      }, []);
+
+      useEffect(() => {
+        const fetchData = async () => {
+          const response = await fetch(
+            "https://www.acme-api.com/api/companies"
+          );
+          const json = await response.json();
+          setContacts(json);
+        };
+        fetchData();
+      }, []);
       return (
         <div>
-          <h1>Numbers App {numbers.length}</h1>
-          <button
-            onClick={function () {
-              setNumbers([...numbers, Math.random()]);
-            }}
-          >
-            +
-          </button>
-          <ul>
-            {numbers.map(function (num) {
-              return <li>{num}</li>;
-            })}
-          </ul>
+          <Title count={contacts.length} />
+          <Contacts contacts={contacts} selectedId={selectedId} />
         </div>
       );
     }
